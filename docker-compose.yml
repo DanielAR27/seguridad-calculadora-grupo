@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # Servicio de la Base de Datos MongoDB
+  mongodb:
+    image: mongo:7.0
+    container_name: calculadora_mongo
+    restart: always
+    ports:
+      # Puerto de Mongo (host:container)
+      - "27017:27017"
+    environment:
+      # Crea la base de datos inicial usando la variable del .env
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+    volumes:
+      # Persiste los datos de la DB en un volumen local
+      - calculadora_mongo_data:/data/db
+    networks:
+      - calculadora_network
+
+  # Servicio del Visor Gráfico (Mongo Express)
+  mongo-express:
+    image: mongo-express:latest
+    container_name: calculadora_mongo_express
+    restart: always
+    ports:
+      # Puerto para acceder a la GUI (host:container)
+      - "${MONGO_EXPRESS_PORT}:8081"
+    environment:
+      # URL de conexión interna (se conecta al servicio 'mongodb')
+      ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USERNAME}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD}
+    depends_on:
+      - mongodb
+    networks:
+      - calculadora_network
+      
+# Definición de volúmenes
+volumes:
+  calculadora_mongo_data:
+    driver: local
+
+# Definición de redes
+networks:
+  calculadora_network:
+    driver: bridge

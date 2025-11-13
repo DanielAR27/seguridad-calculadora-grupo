@@ -1,0 +1,84 @@
+###########################################################################
+# GLOBAL – Aplicable a frontend y backend
+###########################################################################
+
+# Dependencias
+node_modules/
+**/node_modules/
+
+# Variables de entorno
+.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+*.code-workspace
+
+# Cache y temporales
+*.tmp
+*.temp
+*.swp
+*.swo
+*.lock
+.cache/
+.cache-loader/
+coverage/
+dist/
+build/
+out/
+
+# Archivos creados por herramientas de bundling
+*.tsbuildinfo
+
+###########################################################################
+# BACKEND – Archivos típicos a ignorar
+###########################################################################
+
+# PM2
+pm2.log
+pm2.pid
+
+# Procesos de producción (si los usaras)
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Mongo / SQLite / bases locales que no deben versionarse
+*.db
+*.sqlite
+*.sqlite3
+*.local.db
+
+# Carpetas de salida o runtime
+tmp/
+temp/
+uploads/
+
+###########################################################################
+# FRONTEND – React / Vite / Webpack
+###########################################################################
+
+# Salida de compilación
+frontend/dist/
+frontend/build/
+
+# Cachees de Vite / Webpack
+frontend/.vite/
+frontend/.cache/
+frontend/.parcel-cache/
+
+# Archivos generados por el navegador
+*.localstorage
+*.webcache
