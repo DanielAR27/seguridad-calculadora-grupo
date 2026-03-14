@@ -82,3 +82,7 @@ frontend/.parcel-cache/
 # Archivos generados por el navegador
 *.localstorage
 *.webcache
+
+# Scanner Work
+.scannerwork/
+

@@ -25,12 +25,20 @@ const simpleInterest = async (req, res) => {
 
     // Guardar en historial si el usuario lo solicita
     if (shouldSave) {
+      // MITIGACIÓN REQ-SEG-03: Saneamiento estricto
+      const cleanInputs = {
+        principal: data.principal,
+        rate: data.rate,
+        time: data.time
+      };
+
       const newCalculation = new Calculation({
         user: req.user.userId,
         calculationType: 'simpleInterest',
-        inputs: data,
+        inputs: cleanInputs,
         outputs: result,
       });
+
       await newCalculation.save();
       return res.status(201).json(newCalculation);
     }
@@ -68,10 +76,18 @@ const compoundInterest = async (req, res) => {
     const result = calculatorService.calculateCompoundInterest(data);
 
     if (shouldSave) {
+      // MITIGACIÓN REQ-SEG-03: Saneamiento estricto
+      const cleanInputs = {
+        principal: data.principal,
+        rate: data.rate,
+        time: data.time,
+        compoundsPerYear: data.compoundsPerYear
+      };
+
       const newCalculation = new Calculation({
         user: req.user.userId,
         calculationType: 'compoundInterest',
-        inputs: data,
+        inputs: cleanInputs,
         outputs: result,
       });
       await newCalculation.save();
@@ -107,16 +123,22 @@ const loanPayment = async (req, res) => {
     const result = calculatorService.calculateLoanPayment(data);
 
     if (shouldSave) {
+      // MITIGACIÓN REQ-SEG-03: Saneamiento estricto
+      const cleanInputs = {
+        principal: data.principal,
+        rate: data.rate,
+        time: data.time
+      };
+
       const newCalculation = new Calculation({
         user: req.user.userId,
         calculationType: 'loanPayment',
-        inputs: data,
+        inputs: cleanInputs,
         outputs: result,
       });
       await newCalculation.save();
       return res.status(201).json(newCalculation);
     }
-
     res.status(200).json({ inputs: data, outputs: result });
 
   } catch (error) {
@@ -149,10 +171,18 @@ const futureValueAnnuity = async (req, res) => {
     const result = calculatorService.calculateFutureValueAnnuity(data);
 
     if (shouldSave) {
+      // MITIGACIÓN REQ-SEG-03: Saneamiento estricto
+      const cleanInputs = {
+        payment: data.payment,
+        rate: data.rate,
+        time: data.time,
+        compoundsPerYear: data.compoundsPerYear
+      };
+
       const newCalculation = new Calculation({
         user: req.user.userId,
         calculationType: 'futureValueAnnuity',
-        inputs: data,
+        inputs: cleanInputs,
         outputs: result,
       });
       await newCalculation.save();

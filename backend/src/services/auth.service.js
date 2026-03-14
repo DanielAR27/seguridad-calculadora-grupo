@@ -7,7 +7,9 @@ const jwt = require('jsonwebtoken');
  * - El hashing de contraseña lo realiza el modelo (hook pre-save)
  */
 const register = async (userData) => {
-  const { email, password, role } = userData;
+  // MITIGACIÓN REQ-SEG-01: Desestructuración estricta (Allowlist). 
+  // Se ignora el 'role' o cualquier otro campo inyectado por el cliente.
+  const { email, password } = userData;
 
   // Validación: evitar emails repetidos
   const existingUser = await User.findOne({ email });
@@ -15,11 +17,11 @@ const register = async (userData) => {
     throw new Error('El email ya está en uso');
   }
 
-  // Creación del usuario con valores suministrados
+  // Creación del usuario ÚNICAMENTE con los campos permitidos
+  // Mongoose aplicará automáticamente role: 'user' gracias al default del esquema
   const user = new User({
     email,
     password,
-    role, // Si no viene, el modelo aplicará 'user'
   });
 
   await user.save();
