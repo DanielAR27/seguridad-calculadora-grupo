@@ -62,7 +62,7 @@ Ramas: `dar-correciones-backend` · `dar-correciones-frontend` · `dar-correcion
 
 - **Vulnerabilidad:** El controlador `register` guardaba el `req.body` completo, permitiendo inyectar `"role": "admin"`.
 
-- **Correción:** Se implementó desestructuración estricta en `auth.service.js` extrayendo solo `email` y `password`.
+- **Corrección:** Se implementó desestructuración estricta en `auth.service.js` extrayendo solo `email` y `password`.
 
 - **Prueba:** `npm test -- --testPathPattern=auth.security` en la prueba `REQ-SEG-01`. (Verifica que el rol inyectado sea ignorado).
 
@@ -70,7 +70,7 @@ Ramas: `dar-correciones-backend` · `dar-correciones-frontend` · `dar-correcion
 
 - **Vulnerabilidad:** Se guardaban parámetros arbitrarios o scripts en la base de datos al calcular intereses.
 
-- **Correción:** En `calculator.controller.js`, se crea un objeto `cleanInputs` que mapea explícitamente solo los atributos matemáticos esperados.
+- **Corrección:** En `calculator.controller.js`, se crea un objeto `cleanInputs` que mapea explícitamente solo los atributos matemáticos esperados.
 
 - **Prueba:** `npm test -- --testPathPattern=calculator.security` en la prueba `REQ-SEG-03`. (Asegura que los campos inyectados queden en `undefined`).
 
@@ -78,7 +78,7 @@ Ramas: `dar-correciones-backend` · `dar-correciones-frontend` · `dar-correcion
 
 - **Vulnerabilidad:** El servidor arrancaba con secretos débiles o inexistentes.
 
-- **Correción:** Se generó una clave de 256 bits y se añadió una validación en `server.js` que apaga la aplicación (`process.exit(1)`) si `JWT_SECRET` no está definida.
+- **Corrección:** Se generó una clave de 256 bits y se añadió una validación en `server.js` que apaga la aplicación (`process.exit(1)`) si `JWT_SECRET` no está definida.
 
 - **Prueba:** Eliminar la variable del .env y correr npm run dev (el proceso debe abortar con un error fatal).
 
@@ -86,7 +86,7 @@ Ramas: `dar-correciones-backend` · `dar-correciones-frontend` · `dar-correcion
 
 - **Vulnerabilidad:** Formularios permitían enviar peticiones HTTP con contraseñas débil
 
-- **Correción:** Se implementó `evaluatePasswordStrength` en `RegisterPage.jsx` para deshabilitar el botón de envío hasta cumplir con criterios de complejidad.
+- **Corrección:** Se implementó `evaluatePasswordStrength` en `RegisterPage.jsx` para deshabilitar el botón de envío hasta cumplir con criterios de complejidad.
 
 - **Prueba:** `npm run test:security` en la prueba `REQ-SEG-05`.
 
@@ -98,7 +98,7 @@ Ramas: `[NOMBRE_RAMA_KGR]`
 
 - **Vulnerabilidad:** Rutas de login susceptibles a ataques de fuerza bruta.
 
-- **Correción:** Implementación de `express-rate-limit` en `/api/auth` limitando a 5 peticiones fallidas cada 15 minutos.
+- **Corrección:** Implementación de `express-rate-limit` en `/api/auth` limitando a 5 peticiones fallidas cada 15 minutos.
 
 - **Prueba:** `Agregar prueba correspondiente.`
 
@@ -106,7 +106,7 @@ Ramas: `[NOMBRE_RAMA_KGR]`
 
 - **Vulnerabilidad:** Exposición de stack traces y errores de Mongoose ante peticiones inválidas.
 
-- **Correción:** Middleware centralizado que atrapa excepciones y devuelve un JSON genérico.
+- **Corrección:** Middleware centralizado que atrapa excepciones y devuelve un JSON genérico.
 
 - **Prueba:** `Agregar prueba correspondiente.`
 
@@ -114,38 +114,37 @@ Ramas: `[NOMBRE_RAMA_KGR]`
 
 - **Vulnerabilidad:** Riesgo de XSS almacenado si se inyectaban scripts en los cálculos.
 
-- **Correción:** Revisión y escape de datos en `HistoryPage.jsx`, asegurando la no utilización de `dangerouslySetInnerHTML`.
+- **Corrección:** Revisión y escape de datos en `HistoryPage.jsx`, asegurando la no utilización de `dangerouslySetInnerHTML`.
 
 - **Prueba:** `Agregar prueba correspondiente.`
 
 ## Sección de Luis Meza Chavarría
 
-Ramas: `[NOMBRE_RAMA_LMC]`
+Ramas: `luis`
 
 ### Backend 1: Validación de ObjectId
 
-- **Vulnerabilidad:** Peticiones con IDs alterados provocaban inyecciones NoSQL o caída del servicio.
+- **Vulnerabilidad:** Peticiones con IDs alterados (p.ej. `"id_invalido_$$"`) provocaban un `CastError` de Mongoose no controlado, resultando en una respuesta 500 o comportamiento impredecible susceptible a inyecciones NoSQL.
 
-- **Correción:**  Uso de `mongoose.Types.ObjectId.isValid(id)` antes del procesamiento en controladores.
+- **Corrección:** Se añadió `mongoose.Types.ObjectId.isValid(req.params.id)` al inicio de `getCalculationById` y `deleteCalculation` en `calculator.controller.js`. Si el ID no es un ObjectId válido, el controlador retorna 400 inmediatamente sin consultar la base de datos.
 
-- **Prueba:** `Agregar prueba correspondiente.`
+- **Prueba:** `npm test -- --testPathPattern=objectid.security` en las pruebas `REQ-SEG-LMC-01`. Verifica que IDs malformados devuelvan 400 y que ObjectIds válidos pero inexistentes devuelvan 404.
 
 ### Backend 2: Expresión Regular (Regex) para Contraseñas
 
-- **Vulnerabilidad:** Creación de usuarios con contraseñas inseguras desde la capa de persistencia.
+- **Vulnerabilidad:** El campo `password` en `User.model.js` solo exigía `minlength: 6`, permitiendo registrar usuarios con contraseñas como `"abc123"` desde la capa de persistencia, independientemente de las validaciones del frontend.
 
-- **Correción:** Incorporación de una validación Regex en `User.model.js` (mínimo 8 caracteres, al menos una mayúscula, un carácter especial y un número).
+- **Corrección:** Se reemplazó `minlength` por una validación Regex en `User.model.js` que exige: mínimo 8 caracteres, al menos una mayúscula, un número y un carácter especial (`^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*...]).{8,}$`). La validación ocurre antes del hook `pre-save` de bcrypt.
 
-- **Prueba:** `Agregar prueba correspondiente.`
+- **Prueba:** `npm test -- --testPathPattern=password.security` en las pruebas `REQ-SEG-LMC-02`. Verifica el rechazo de contraseñas sin mayúscula, sin número y con menos de 8 caracteres, y la aceptación de `"Segura123!"`.
 
+### Frontend 1: Sesiones con Cookies HttpOnly (Refactorización de Auth)
 
-### Frontend 1: Sesiones con Cookies (Refactorización de Auth)
+- **Vulnerabilidad:** El token JWT se almacenaba en `localStorage`, accesible a cualquier script de la página. Un ataque XSS exitoso podía leer y exfiltrar el token completo.
 
-- **Vulnerabilidad:** El token JWT se almacenaba en localStorage, exponiéndolo a ataques XSS.
+- **Corrección:** Refactorización completa del flujo de autenticación: el backend establece el JWT en una cookie `HttpOnly` mediante `res.cookie()` en `auth.controller.js`, por lo que el token nunca viaja en el body ni es accesible desde JavaScript. `AuthContext.jsx` elimina toda referencia a `localStorage` y verifica la sesión activa mediante `GET /api/auth/me`. Axios usa `withCredentials: true`. Se añadieron los endpoints `POST /api/auth/logout` y `GET /api/auth/me`.
 
-- **Correción:** Refactorización de `AuthContext.jsx` y Axios (`api.js`) para manejar autenticación mediante cookies `HttpOnly`.
-
-- **Prueba:** `Agregar prueba correspondiente.`
+- **Prueba:** `npm test -- --testPathPattern=cookies.security` en las pruebas `REQ-SEG-LMC-03`. Verifica que la cookie lleve el flag `HttpOnly`, que el token no aparezca en el body del login, que rutas protegidas funcionen con cookie y rechacen peticiones sin ella, y que el logout elimine la cookie.
 
 ## Sección de Joyce Ugalde Miranda
 
@@ -155,7 +154,7 @@ Ramas: `[NOMBRE_RAMA_JUM]`
 
 - **Vulnerabilidad:** Tokens JWT con ventana de exposición extensa (24 horas).
 
-- **Correción:**  Modificación de `jsonwebtoken.sign` en `auth.service.js` ajustando expiresIn a 15 minutos.
+- **Corrección:**  Modificación de `jsonwebtoken.sign` en `auth.service.js` ajustando expiresIn a 15 minutos.
 
 - **Prueba:** `Agregar prueba correspondiente.`
 
@@ -163,7 +162,7 @@ Ramas: `[NOMBRE_RAMA_JUM]`
 
 - **Vulnerabilidad:** Los cálculos matemáticos aceptaban valores no numéricos, provocando inconsistencias.
 
-- **Correción:**  Implementación de reglas de `express-validator` en `calculator.routes.js` rechazando tipos de datos inválidos en la capa de rutas.
+- **Corrección:**  Implementación de reglas de `express-validator` en `calculator.routes.js` rechazando tipos de datos inválidos en la capa de rutas.
 
 - **Prueba:** `Agregar prueba correspondiente.`
 
@@ -171,7 +170,7 @@ Ramas: `[NOMBRE_RAMA_JUM]`
 
 - **Vulnerabilidad:** La interfaz no reaccionaba a la expiración prematura del token, generando errores invisibles.
 
-- **Correción:**  Interceptor global en Axios que detecta el error 401 y redirige limpiamente a `LoginPage.jsx`.
+- **Corrección:**  Interceptor global en Axios que detecta el error 401 y redirige limpiamente a `LoginPage.jsx`.
 
 - **Prueba:** `Agregar prueba correspondiente.`
 
