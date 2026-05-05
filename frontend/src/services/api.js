@@ -3,55 +3,38 @@ import axios from 'axios';
 // -------------------------------------------------------------
 // 1. Instancia base de Axios
 // -------------------------------------------------------------
-// Esta instancia centraliza la URL base de la API y permite agregar
-// interceptores que afecten a todas las solicitudes salientes.
-// La URL se toma de las variables de entorno proporcionadas por Vite.
+// MITIGACIÓN REQ-SEG-LMC-03: withCredentials permite que el navegador envíe
+// automáticamente la cookie HttpOnly en cada petición — el token nunca toca JS.
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
+  withCredentials: true,
 });
 
 // -------------------------------------------------------------
-// 2. Interceptor de solicitudes
+// 2. ENDPOINTS ORGANIZADOS
 // -------------------------------------------------------------
-// Este interceptor se ejecuta antes de cada request y se encarga de:
-// - Leer el token almacenado en localStorage
-// - Adjuntarlo como encabezado Authorization si existe
-// Esto garantiza que todas las peticiones autenticadas lleven el JWT.
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    return config;
-  },
-  (error) => {
-    // Si ocurre un error antes de enviar la solicitud, se rechaza la promesa
-    return Promise.reject(error);
-  }
-);
-
-// -------------------------------------------------------------
-// 3. ENDPOINTS ORGANIZADOS
-// -------------------------------------------------------------
-// Se exportan objetos agrupados por dominio (auth y calculator)
-// para mantener coherencia, orden y facilitar su uso desde React.
 
 // -------------------- AUTENTICACIÓN ---------------------------
 export const authApi = {
-  // POST /auth/login
-  // Recibe email y password, devuelve token + datos del usuario
+  // POST /auth/login — establece la cookie HttpOnly en el servidor
   login: (email, password) => {
     return api.post('/auth/login', { email, password });
   },
 
   // POST /auth/register
-  // Crea un usuario: { email, password }
   register: (userData) => {
     return api.post('/auth/register', userData);
-  }
+  },
+
+  // POST /auth/logout — elimina la cookie en el servidor
+  logout: () => {
+    return api.post('/auth/logout');
+  },
+
+  // GET /auth/me — verifica la cookie activa y retorna datos del usuario
+  me: () => {
+    return api.get('/auth/me');
+  },
 };
 
 // -------------------- CALCULADORA -----------------------------
@@ -92,22 +75,18 @@ export const calculatorApi = {
   },
 
   // --- Lectura de historial ---
-  // GET /calculator/history
   getHistory: () => {
     return api.get('/calculator/history');
   },
 
-  // GET /calculator/history/:id
   getHistoryById: (id) => {
     return api.get(`/calculator/history/${id}`);
   },
 
   // --- Eliminación de elementos del historial ---
-  // DELETE /calculator/history/:id
   deleteHistoryItem: (id) => {
     return api.delete(`/calculator/history/${id}`);
   },
 };
 
-// Exportación de la instancia base (útil para casos especiales)
 export default api;

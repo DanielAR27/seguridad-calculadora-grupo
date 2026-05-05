@@ -10,6 +10,7 @@ if (!process.env.JWT_SECRET) {
 // Importar dependencias
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const connectDB = require('./src/config/db');
 
 const mainRouter = require('./src/routes'); // (Apunta a src/routes/index.js)
@@ -21,7 +22,9 @@ connectDB();
 const app = express();
 
 // Middlewares globales
-app.use(cors());
+// MITIGACIÓN REQ-SEG-LMC-03: origin explícito requerido para credentials: true
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+app.use(cookieParser());
 app.use(express.json());
 
 // Rutas

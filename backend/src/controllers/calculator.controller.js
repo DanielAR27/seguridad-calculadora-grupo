@@ -1,5 +1,6 @@
 const calculatorService = require('../services/calculator.service.js');
 const Calculation = require('../models/Calculation.model.js');
+const mongoose = require('mongoose');
 
 /**
  * Calcula Interés Simple.
@@ -218,6 +219,11 @@ const getHistory = async (req, res) => {
  */
 const getCalculationById = async (req, res) => {
   try {
+    // MITIGACIÓN REQ-SEG-LMC-01: Validación de ObjectId antes de consultar la BD
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: 'ID de cálculo no válido.' });
+    }
+
     const calculation = await Calculation.findOne({
       _id: req.params.id,
       user: req.user.userId
@@ -238,6 +244,11 @@ const getCalculationById = async (req, res) => {
  */
 const deleteCalculation = async (req, res) => {
   try {
+    // MITIGACIÓN REQ-SEG-LMC-01: Validación de ObjectId antes de consultar la BD
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: 'ID de cálculo no válido.' });
+    }
+
     const calculation = await Calculation.findOneAndDelete({
       _id: req.params.id,
       user: req.user.userId
