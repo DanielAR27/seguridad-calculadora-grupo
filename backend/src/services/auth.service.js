@@ -47,9 +47,9 @@ const login = async (credentials) => {
     throw new Error('Credenciales inválidas');
   }
 
-  // Payload básico para el JWT
   const payload = {
     userId: user._id,
+    email: user.email,
     role: user.role,
   };
 

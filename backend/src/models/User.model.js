@@ -16,7 +16,13 @@ const userSchema = new Schema(
     password: {
       type: String,
       required: [true, 'La contraseña es obligatoria'],
-      minlength: [6, 'La contraseña debe tener al menos 6 caracteres'],
+      validate: {
+        validator: function (v) {
+          // MITIGACIÓN REQ-SEG-LMC-02: mínimo 8 chars, mayúscula, número y carácter especial
+          return /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()\-_=+{};:,<.>/?]).{8,}$/.test(v);
+        },
+        message: 'La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial.',
+      },
     },
 
     // Campo simple para roles (acceso normal o administrativo)

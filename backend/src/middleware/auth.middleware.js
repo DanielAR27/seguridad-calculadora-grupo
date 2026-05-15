@@ -1,31 +1,21 @@
 const jwt = require('jsonwebtoken');
 
 /**
- * Verifica el token JWT de la cabecera Authorization.
- * Si es válido, adjunta el payload del token (user) a req.
+ * Verifica el token JWT desde la cookie HttpOnly.
+ * MITIGACIÓN REQ-SEG-LMC-03: El token se lee desde req.cookies (inaccesible a JS del cliente).
  */
 const verifyToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  
-  // Formato esperado: "Bearer <token>"
-  const token = authHeader && authHeader.split(' ')[1];
+  const token = req.cookies?.token;
 
   if (!token) {
-    // 401 Unauthorized: No se proporcionó token
     return res.status(401).json({ error: 'Acceso denegado. No se proporcionó token.' });
   }
 
   try {
-    // Verifica el token usando el secreto
     const verifiedPayload = jwt.verify(token, process.env.JWT_SECRET);
-    
-    // Adjunta el payload (ej: { userId, role }) al objeto request
     req.user = verifiedPayload;
-    
-    // Pasa al siguiente middleware o controlador
     next();
   } catch (error) {
-    // 401 Unauthorized: Token inválido o expirado
     res.status(401).json({ error: 'Token inválido.' });
   }
 };
