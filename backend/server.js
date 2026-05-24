@@ -14,6 +14,7 @@ const cookieParser = require('cookie-parser');
 const connectDB = require('./src/config/db');
 
 const mainRouter = require('./src/routes'); // (Apunta a src/routes/index.js)
+const errorMiddleware = require('./src/middleware/error.middleware');
 
 // Inicializar la conexión a la DB
 connectDB();
@@ -35,6 +36,9 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api', mainRouter);
+
+// Middleware para manejar errores
+app.use(errorMiddleware);
 
 // 7. Iniciar el servidor (SOLO si no estamos corriendo pruebas con Jest)
 if (process.env.NODE_ENV !== 'test') {
