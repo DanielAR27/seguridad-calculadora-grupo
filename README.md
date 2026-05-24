@@ -90,33 +90,33 @@ Ramas: `dar-correciones-backend` · `dar-correciones-frontend` · `dar-correcion
 
 - **Prueba:** `npm run test:security` en la prueba `REQ-SEG-05`.
 
-## Sección de Kristhel Guido Ramos
+### Sección de Kristhel Guido Ramos
 
-Ramas: `[NOMBRE_RAMA_KGR]`
+Ramas: kgr-correcciones-seguridad
 
-### Backend 1: Rate Limiting en Autenticación
+#### Backend 1: Rate Limiting en Autenticación
 
-- **Vulnerabilidad:** Rutas de login susceptibles a ataques de fuerza bruta.
+Vulnerabilidad: Las rutas de autenticación `/api/auth/login` y `/api/auth/register` permitían múltiples intentos consecutivos sin aplicar un límite por dirección IP. Esto exponía el sistema a ataques de fuerza bruta contra credenciales y a posibles abusos de disponibilidad mediante solicitudes repetidas.
 
-- **Corrección:** Implementación de `express-rate-limit` en `/api/auth` limitando a 5 peticiones fallidas cada 15 minutos.
+Corrección: Se implementó `express-rate-limit` mediante el middleware `authRateLimiter` en `backend/src/middleware/authRateLimit.middleware.js`. Este middleware limita a 5 solicitudes por IP dentro de una ventana de 15 minutos y fue aplicado directamente sobre las rutas de registro e inicio de sesión en `backend/src/routes/auth.routes.js`.
 
-- **Prueba:** `Agregar prueba correspondiente.`
+Prueba: Se ejecutaron intentos consecutivos contra `/api/auth/login`. Antes de la corrección, el sistema respondía `HTTP 401` en los intentos fallidos sin bloquear la frecuencia de solicitudes. Después de la corrección, el exceso de intentos es bloqueado y la interfaz muestra un mensaje controlado indicando: “Demasiados intentos de autenticación. Intente nuevamente más tarde.”
 
-### Backend 2: Middleware Global de Manejo de Errores
+#### Backend 2: Middleware Global de Manejo de Errores
 
-- **Vulnerabilidad:** Exposición de stack traces y errores de Mongoose ante peticiones inválidas.
+Vulnerabilidad: El backend exponía detalles técnicos internos ante solicitudes inválidas, incluyendo mensajes como `SyntaxError`, referencias a `body-parser`, stack traces y rutas locales del proyecto. Esto podía revelar información útil para un atacante sobre la estructura y tecnologías internas de la aplicación.
 
-- **Corrección:** Middleware centralizado que atrapa excepciones y devuelve un JSON genérico.
+Corrección: Se implementó un middleware global de manejo de errores en `backend/src/middleware/error.middleware.js`. Este middleware registra internamente información mínima para depuración y devuelve al cliente una respuesta JSON genérica, evitando la exposición de detalles internos. La corrección fue integrada en `backend/server.js` después del registro de las rutas principales.
 
-- **Prueba:** `Agregar prueba correspondiente.`
+Prueba: Se envió una solicitud con JSON mal formado hacia `/api/auth/login`. Antes de la corrección, el servidor devolvía una respuesta HTML con detalles técnicos internos. Después de la corrección, responde con `HTTP 400 Bad Request` y el mensaje genérico `{"error":"Error interno del servidor"}`.
 
-### Frontend 1: Saneamiento en Vista de Historial (Prevención XSS)
+#### Frontend 1: Saneamiento en Vista de Historial
 
-- **Vulnerabilidad:** Riesgo de XSS almacenado si se inyectaban scripts en los cálculos.
+Vulnerabilidad: La vista `HistoryPage.jsx` renderizaba valores provenientes del historial de cálculos sin una función explícita de saneamiento o normalización. En particular, la función `formatType` podía devolver directamente valores desconocidos mediante `default: return type`, lo que representaba un riesgo preventivo frente a escenarios de Cross-Site Scripting almacenado si llegaban datos manipulados desde la base de datos.
 
-- **Corrección:** Revisión y escape de datos en `HistoryPage.jsx`, asegurando la no utilización de `dangerouslySetInnerHTML`.
+Corrección: Se agregaron funciones auxiliares de saneamiento y normalización en `frontend/src/pages/HistoryPage.jsx`. La función `escapeText` escapa caracteres especiales en valores dinámicos, `safeCurrency` valida resultados numéricos antes de renderizarlos y `encodeURIComponent` protege la construcción de rutas internas con identificadores provenientes del historial.
 
-- **Prueba:** `Agregar prueba correspondiente.`
+Prueba: Se verificó el código corregido para confirmar el uso de `escapeText`, `safeCurrency` y `encodeURIComponent`. Además, se comprobó desde la interfaz que la vista de historial continúa cargando correctamente los cálculos guardados después de aplicar el saneamiento.
 
 ## Sección de Luis Meza Chavarría
 
