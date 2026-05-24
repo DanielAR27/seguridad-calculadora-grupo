@@ -8,6 +8,27 @@ function HistoryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   
+  const escapeText = (value) => {
+    if (value === null || value === undefined) return '';
+
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  };
+
+  const safeCurrency = (value, suffix = '') => {
+    const numberValue = Number(value);
+
+    if (!Number.isFinite(numberValue)) {
+      return null;
+    }
+
+    return `$${numberValue.toFixed(2)}${suffix}`;
+  };
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
@@ -79,7 +100,7 @@ function HistoryPage() {
       case 'compoundInterest': return 'Interés Compuesto';
       case 'loanPayment': return 'Pago de Préstamo';
       case 'futureValueAnnuity': return 'Anualidad (Valor Futuro)';
-      default: return type;
+      default: return escapeText(type);
     }
   };
 
@@ -92,7 +113,7 @@ function HistoryPage() {
       futureValueAnnuity: 'fv-annuity',
     };
     const path = typeToPath[calculation.calculationType];
-    return `/calculator/${path}/${calculation._id}`;
+    return `/calculator/${path}/${encodeURIComponent(String(calculation._id))}`;
   };
 
   return (
@@ -165,10 +186,10 @@ function HistoryPage() {
                   </td>
 
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-bold">
-                    {calc.outputs.totalAmount && `$${calc.outputs.totalAmount.toFixed(2)}`}
-                    {calc.outputs.finalAmount && `$${calc.outputs.finalAmount.toFixed(2)}`}
-                    {calc.outputs.monthlyPayment && `$${calc.outputs.monthlyPayment.toFixed(2)} (Mensual)`}
-                    {calc.outputs.futureValue && `$${calc.outputs.futureValue.toFixed(2)}`}
+                    {safeCurrency(calc.outputs?.totalAmount)}
+                    {safeCurrency(calc.outputs?.finalAmount)}
+                    {safeCurrency(calc.outputs?.monthlyPayment, ' (Mensual)')}
+                    {safeCurrency(calc.outputs?.futureValue)}
                   </td>
 
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
