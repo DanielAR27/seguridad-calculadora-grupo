@@ -53,9 +53,11 @@ const login = async (credentials) => {
     role: user.role,
   };
 
-  // Firma del token con expiración estándar
+  // MITIGACIÓN REQ-SEG-11 (Joyce): Token con vida máxima de 15 minutos.
+  // Antes era '1d' (24h), lo que daba una ventana de explotación de un día entero
+  // si el token era interceptado. Con '15m' se reduce drásticamente ese riesgo.
   const token = jwt.sign(payload, process.env.JWT_SECRET, {
-    expiresIn: '1d',
+    expiresIn: '15m',
   });
 
   // Retornar token y datos públicos del usuario
