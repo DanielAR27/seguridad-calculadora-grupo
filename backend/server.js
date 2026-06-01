@@ -11,6 +11,7 @@ if (!process.env.JWT_SECRET) {
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
 const connectDB = require('./src/config/db');
 
 const mainRouter = require('./src/routes'); // (Apunta a src/routes/index.js)
@@ -21,6 +22,23 @@ connectDB();
 
 // Crear la aplicación de Express
 const app = express();
+
+// MITIGACIÓN REQ-SEG-12 (Joyce): Encabezados de seguridad HTTP.
+// Helmet configura automáticamente: X-Frame-Options (DENY), X-Content-Type-Options (nosniff),
+// Content-Security-Policy, elimina X-Powered-By, entre otros.
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:'],
+      connectSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  frameguard: { action: 'deny' },
+}));
 
 // Middlewares globales
 // MITIGACIÓN REQ-SEG-LMC-03: origin explícito requerido para credentials: true

@@ -1,6 +1,7 @@
 const calculatorService = require('../services/calculator.service.js');
 const Calculation = require('../models/Calculation.model.js');
 const mongoose = require('mongoose');
+const { logSecurityEvent } = require('../middleware/security.logger');
 
 /**
  * Calcula Interés Simple.
@@ -257,6 +258,13 @@ const deleteCalculation = async (req, res) => {
     if (!calculation) {
       return res.status(404).json({ error: 'Cálculo no encontrado.' });
     }
+
+    // MITIGACIÓN REQ-SEG-JUM (Joyce): Registrar eliminación para trazabilidad de auditoría.
+    logSecurityEvent('CALC_DELETED', {
+      userId: req.user.userId,
+      ip: req.ip,
+      endpoint: req.originalUrl,
+    });
 
     res.status(200).json({ message: 'Cálculo eliminado', id: calculation._id });
   } catch (error) {
