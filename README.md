@@ -148,7 +148,11 @@ Ramas: `luis`
 
 ## Sección de Joyce Ugalde Miranda
 
-Ramas: `[NOMBRE_RAMA_JUM]`
+Ramas: `JUM`
+
+> [!NOTE]
+> **Aclaración sobre herramientas de apoyo:** Durante el desarrollo de esta sección se utilizó a Claude únicamente como apoyo para la estructuración del código y depuración de pruebas. Debido a un error de configuración del entorno de desarrollo de Joyce al hacer commit (`29a4adb80a5c21a7e307fffb72759d11ee1ae96c`), se incluyó la firma `Co-Authored-By: Claude` en el mensaje de forma automática. Todo el código de esta sección fue verificado y estructurado por la estudiante.
+
 
 ### Backend 1: Reducción de Exposición de Sesión JWT
 
